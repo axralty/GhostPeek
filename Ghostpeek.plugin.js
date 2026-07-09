@@ -4,7 +4,7 @@
  * @authorLink https://github.com/axralty
  * @source https://github.com/axralty/GhostPeek
  * @description Right-click or Ctrl+click a DM → peek messages without marking as read.
- * @version 3.1.0
+ * @version 3.1.1
  */
 
 module.exports = class GhostPeek {
@@ -283,29 +283,18 @@ module.exports = class GhostPeek {
         return null;
     }
 
-    _getToken() {
-        if (this._tokenCache) return this._tokenCache;
-        try {
-            window.webpackChunkdiscord_app.push([[Math.random()], {}, req => {
-                for (const mod of Object.values(req.c)) {
-                    const exp = mod?.exports;
-                    if (!exp || typeof exp !== "object") continue;
-                    for (const v of Object.values(exp)) {
-                        if (v?._dispatchToken && typeof v.getToken === "function"
-                            && typeof v.getSessionId === "function"
-                            && typeof v.getMFATicket === "function") {
-                            const t = v.getToken();
-                            if (typeof t === "string" && t.length > 20) {
-                                this._tokenCache = t;
-                                return;
-                            }
-                        }
-                    }
-                }
-            }]);
-        } catch (_) {}
-        return this._tokenCache;
-    }
+_getToken() {
+    if (this._tokenCache) return this._tokenCache;
+    try {
+        const store = BdApi.Webpack.getStore("AuthenticationStore");
+        const t = store?.getToken?.();
+        if (typeof t === "string" && t.length > 20) {
+            this._tokenCache = t;
+            return this._tokenCache;
+        }
+    } catch (_) {}
+    return this._tokenCache;
+}
 
     _fmtDate(d) { return d.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }); }
     _fmtTime(d) { return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
